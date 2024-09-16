@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify
 import requests
 
+
 app = Flask(__name__)
 
 # Замените на ваш Shopify Store URL и Access Token
@@ -57,5 +58,5 @@ def product_update():
     return jsonify({"status": "success"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
 
