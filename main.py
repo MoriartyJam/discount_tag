@@ -42,7 +42,7 @@ def update_product_tags(product_id, tags):
         logging.error(f"Ошибка при обновлении тегов продукта {product_id}: {response.status_code}, {response.text}")
 
 
-# Обработчик для webhook от Shopify
+# Обработчик для обновлений продуктов через вебхук
 @app.route('/webhook/product-update', methods=['POST'])
 def product_update():
     data = request.json
@@ -69,7 +69,28 @@ def product_update():
     return jsonify({"status": "success"}), 200
 
 
+# Обработчик для создания новых продуктов через вебхук
+@app.route('/webhook/product-create', methods=['POST'])
+def product_create():
+    data = request.json
+    logging.info(f"Получены данные о создании нового продукта от вебхука: {data}")
+
+    product_id = data.get('id')
+    product_title = data.get('title')
+    tags = data.get('tags', '')
+
+    # Проверяем наличие Compare-at price
+    has_compare_at_price = any(variant.get('compare_at_price') for variant in data.get('variants', []))
+
+    if not has_compare_at_price:
+        # Если у нового товара нет Compare-at price, добавляем тег without_compare
+        new_tags = tags + ', without_compare' if tags else 'without_compare'
+        update_product_tags(product_id, new_tags)
+        logging.info(f"Новый товар {product_title} (ID: {product_id}) создан, тег without_compare добавлен.")
+
+    return jsonify({"status": "success"}), 200
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
-
 
